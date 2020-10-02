@@ -29,7 +29,7 @@
 
 環境は以下のとおりです。
 
-* Ubuntu 18.04 LTS  
+* Ubuntu 18.04 LTS  / Window 10 환경(conda 가상환경 이용)
 * Anaconda 2019.03 Python 3.7
 * 必要なPythonパッケージ（下記スクリプト参照）
 
@@ -68,6 +68,7 @@ pip install lightgbm==2.2.2
 pip install tensorflow==1.14.0
 pip install keras==2.2.4
 pip install hyperopt==0.1.1
+pip install Cython==0.29.21
 pip install bhtsne==0.1.9
 pip install rgf_python==3.4.0
 pip install umap-learn==0.3.9
