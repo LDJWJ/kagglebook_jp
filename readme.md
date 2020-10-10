@@ -61,15 +61,21 @@ source ~/.bashrc
 # pip install numpy==1.16.2 
 # pip install scipy==1.2.1 
 # pip install pandas==0.24.2
-pip install scikit-learn==0.21.2
+# pip install scipy==1.2.1 pandas==0.24.2 scikit-learn==0.21.2  xgboost==0.81
 
+pip install scikit-learn==0.21.2
 pip install xgboost==0.81
+
+# pip install lightgbm==2.2.2  tensorflow==1.14.0   keras==2.2.4  hyperopt==0.1.1 
 pip install lightgbm==2.2.2
 pip install tensorflow==1.14.0
 pip install keras==2.2.4
 pip install hyperopt==0.1.1
-pip install Cython==0.29.21
-pip install bhtsne==0.1.9
+# pip install Cython==0.29.21
+
+# pip install bhtsne==0.1.9  rgf_python==3.4.0   umap-learn==0.3.9
+
+pip install bhtsne==0.1.9      # 원도우 설치시 에러 발생.
 pip install rgf_python==3.4.0
 pip install umap-learn==0.3.9
 

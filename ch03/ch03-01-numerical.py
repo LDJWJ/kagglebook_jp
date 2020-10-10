@@ -1,206 +1,220 @@
+#%%
 # ---------------------------------
-# データ等の準備
+# 데이터 등 기본 준비
 # ----------------------------------
 import numpy as np
 import pandas as pd
 
-# train_xは学習データ、train_yは目的変数、test_xはテストデータ
-# pandasのDataFrame, Seriesで保持します。（numpyのarrayで保持することもあります）
+# train_x는 학습 데이터, train_y는 목적 변수, test_x는 테스트 데이터
+# pandas의 DataFrame, Series을 사용합니다. (numpy의 array로 사용하기도 합니다.）
 
 train = pd.read_csv('../input/sample-data/train_preprocessed.csv')
 train_x = train.drop(['target'], axis=1)
 train_y = train['target']
 test_x = pd.read_csv('../input/sample-data/test_preprocessed.csv')
 
-# 説明用に学習データとテストデータの元の状態を保存しておく
+# 설명용으로 학습 데이터와 테스트 데이터를 원본 상태를 저장해 둡니다.
 train_x_saved = train_x.copy()
 test_x_saved = test_x.copy()
 
 
-# 学習データとテストデータを返す関数
+# 학습 데이터와 테스트 데이터를 반환하는 함수
 def load_data():
     train_x, test_x = train_x_saved.copy(), test_x_saved.copy()
     return train_x, test_x
 
 
-# 変換する数値変数をリストに格納
+# 변환할 수치형 변수 리스트를 저장
 num_cols = ['age', 'height', 'weight', 'amount',
             'medical_info_a1', 'medical_info_a2', 'medical_info_a3', 'medical_info_b1']
 
+#%%
 # -----------------------------------
-# 標準化
+# 표준화
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 from sklearn.preprocessing import StandardScaler
 
-# 学習データに基づいて複数列の標準化を定義
+# 학습 데이터를 기반으로 복수 열의 표준화를 수행
 scaler = StandardScaler()
 scaler.fit(train_x[num_cols])
 
-# 変換後のデータで各列を置換
+# 변환 후의 데이터로 각 열을 치환
 train_x[num_cols] = scaler.transform(train_x[num_cols])
 test_x[num_cols] = scaler.transform(test_x[num_cols])
 
+#%%
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 from sklearn.preprocessing import StandardScaler
 
-# 学習データとテストデータを結合したものに基づいて複数列の標準化を定義
+# 학습 데이터와 테스트 데이터를 결합하여 복수열의 표준화를 정의
 scaler = StandardScaler()
 scaler.fit(pd.concat([train_x[num_cols], test_x[num_cols]]))
 
-# 変換後のデータで各列を置換
+# 변환 후의 데이터로 각 열을 치환
 train_x[num_cols] = scaler.transform(train_x[num_cols])
 test_x[num_cols] = scaler.transform(test_x[num_cols])
 
+#%%
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 from sklearn.preprocessing import StandardScaler
 
-# 学習データとテストデータを別々に標準化（悪い例）
+# 학습 데이터와 테스트 데이터를 각각 표준화 수행(나쁜 예)
 scaler_train = StandardScaler()
 scaler_train.fit(train_x[num_cols])
 train_x[num_cols] = scaler_train.transform(train_x[num_cols])
+
 scaler_test = StandardScaler()
 scaler_test.fit(test_x[num_cols])
 test_x[num_cols] = scaler_test.transform(test_x[num_cols])
 
+#%%
 # -----------------------------------
-# Min-Maxスケーリング
+# Min-Max 스케일링
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 from sklearn.preprocessing import MinMaxScaler
 
-# 学習データに基づいて複数列のMin-Maxスケーリングを定義
+# 학습 데이터를 기반으로 복수열의 Min-Max 스케일링 정의
 scaler = MinMaxScaler()
 scaler.fit(train_x[num_cols])
 
-# 変換後のデータで各列を置換
+# 변환 후의 데이터로 각 열을 치환
 train_x[num_cols] = scaler.transform(train_x[num_cols])
 test_x[num_cols] = scaler.transform(test_x[num_cols])
 
+#%%
 # -----------------------------------
-# 対数変換
+# 로그(대수) 변환
 # -----------------------------------
 x = np.array([1.0, 10.0, 100.0, 1000.0, 10000.0])
 
-# 単に対数をとる
+# 단순히 값에 로그를 취함
 x1 = np.log(x)
 
-# 1を加えたあとに対数をとる
+# 1을 더한 뒤에 로그를 취함
 x2 = np.log1p(x)
 
-# 絶対値の対数をとってから元の符号を付加する
+# 절대값의 로그를 취한 후, 원래 값의 부호를 추가
 x3 = np.sign(x) * np.log(np.abs(x))
 
+#%%
 # -----------------------------------
-# Box-Cox変換
+# Box-Cox 변환
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 
-# 正の値のみをとる変数を変換対象としてリストに格納する
-# なお、欠損値も含める場合は、(~(train_x[c] <= 0.0)).all() などとする必要があるので注意
+# 양의 정수 값만을 취하는 변수를 변환 대상으로 목록에 저장
+# 또한, 결측치의 값을 포함하는 경우는, (~(train_x[c] <= 0.0)).all() 등으로 할 필요가 있으므로 주의??
 pos_cols = [c for c in num_cols if (train_x[c] > 0.0).all() and (test_x[c] > 0.0).all()]
 
 from sklearn.preprocessing import PowerTransformer
 
-# 学習データに基づいて複数列のBox-Cox変換を定義
+# 학습 데이터를 기반으로 복수열의 Box-Cox 변환 정의
 pt = PowerTransformer(method='box-cox')
 pt.fit(train_x[pos_cols])
 
-# 変換後のデータで各列を置換
+# 변환 후의 데이터로 각 열을 치환
 train_x[pos_cols] = pt.transform(train_x[pos_cols])
 test_x[pos_cols] = pt.transform(test_x[pos_cols])
 
+#%%
 # -----------------------------------
-# Yeo-Johnson変換
+# Yeo-Johnson 변환
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 
 from sklearn.preprocessing import PowerTransformer
 
-# 学習データに基づいて複数列のYeo-Johnson変換を定義
+# 학습 데이터를 기반으로 여러 열의 Yeo-Johnson 변환 정의
 pt = PowerTransformer(method='yeo-johnson')
 pt.fit(train_x[num_cols])
 
-# 変換後のデータで各列を置換
+# 변환 후의 데이터로 각 열을 치환
 train_x[num_cols] = pt.transform(train_x[num_cols])
 test_x[num_cols] = pt.transform(test_x[num_cols])
 
+#%%
 # -----------------------------------
 # clipping
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
-# 列ごとに学習データの1％点、99％点を計算
+# 열마다 학습 데이터 1%, 99%의 지점을 확인
 p01 = train_x[num_cols].quantile(0.01)
 p99 = train_x[num_cols].quantile(0.99)
 
-# 1％点以下の値は1％点に、99％点以上の値は99％点にclippingする
+# 1％점 이하의 점은 1%점으로, 99%점 이상의 값은 99%점으로 clipping한다.
 train_x[num_cols] = train_x[num_cols].clip(p01, p99, axis=1)
 test_x[num_cols] = test_x[num_cols].clip(p01, p99, axis=1)
 
+#%%
 # -----------------------------------
 # binning
 # -----------------------------------
 x = [1, 7, 5, 4, 6, 3]
 
-# pandasのcut関数でbinningを行う
+# pandas의 cut함수로 binning을 수행
 
-# binの数を指定する場合
+# bin의 수를 지정할 경우,
 binned = pd.cut(x, 3, labels=False)
 print(binned)
-# [0 2 1 1 2 0] - 変換された値は3つのbinのどれに入ったかを表す
+# [0 2 1 1 2 0] - 변환된 값은 세개의 bin 중에 어느것이 들어가는지 나타낸다.
 
-# binの範囲を指定する場合（3.0以下、3.0より大きく5.0以下、5.0より大きい）
+# bin의 범위를 지정할 경우(3.0 이하, 3.0보다 크고 5.0보다 이하, 5.0보다 큼)
 bin_edges = [-float('inf'), 3.0, 5.0, float('inf')]
 binned = pd.cut(x, bin_edges, labels=False)
 print(binned)
-# [0 2 1 1 2 0] - 変換された値は3つのbinのどれに入ったかを表す
+# [0 2 1 1 2 0] - 변환된 값은 세 bin중 어느 것에 들어갔는지를 나타낸다.
 
+#%%
 # -----------------------------------
-# 順位への変換
+# 순위 변환
 # -----------------------------------
 x = [10, 20, 30, 0, 40, 40]
 
-# pandasのrank関数で順位に変換する
+# pandas의 rank함수에서 순위로 변환하다.
 rank = pd.Series(x).rank()
 print(rank.values)
-# はじまりが1、同順位があった場合は平均の順位となる
+
+# 시작이 1, 동 순위가 있을 경우에는 평균 순위가 된다.
 # [2. 3. 4. 1. 5.5 5.5]
 
-# numpyのargsort関数を2回適用する方法で順位に変換する
+# numpy의 argsort 함수를 2회 적용하는 방법으로 순위를 변환한다.
 order = np.argsort(x)
 rank = np.argsort(order)
 print(rank)
-# はじまりが0、同順位があった場合はどちらかが上位となる
+# 시작이 0, 동순위가 있을 경우는 어느 쪽이든 상위가 된다.
 # [1 2 3 0 4 5]
 
+#%%
 # -----------------------------------
 # RankGauss
 # -----------------------------------
-# データの読み込み
+# 데이터 읽어오기
 train_x, test_x = load_data()
 # -----------------------------------
 from sklearn.preprocessing import QuantileTransformer
 
-# 学習データに基づいて複数列のRankGaussによる変換を定義
+# 학습 데이터를 기반으로 복수열의 RankGauss를 통한 변환 정의
 transformer = QuantileTransformer(n_quantiles=100, random_state=0, output_distribution='normal')
 transformer.fit(train_x[num_cols])
 
-# 変換後のデータで各列を置換
+# 변환 후 데이터로 각 열을 치환
 train_x[num_cols] = transformer.transform(train_x[num_cols])
 test_x[num_cols] = transformer.transform(test_x[num_cols])

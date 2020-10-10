@@ -1,6 +1,7 @@
 #%%
 import numpy as np
 import pandas as pd
+from xgboost import XGBClassifier
 
 # -----------------------------------
 # 학습 데이터(train.csv), 테스트 데이터(test.csv) 읽기
@@ -40,26 +41,6 @@ for c in ['Sex', 'Embarked']:
     train_x[c] = le.transform(train_x[c].fillna('NA'))
     test_x[c] = le.transform(test_x[c].fillna('NA'))
 
-#%%
-# -----------------------------------
-# 모델 만들기
-# -----------------------------------
-from xgboost import XGBClassifier
-
-# 모델 생성 및 학습 데이터를 이용한 모델 학습
-model = XGBClassifier(n_estimators=20, random_state=71)
-model.fit(train_x, train_y)
-
-# 테스트 데이터의 예측 결과를 확률로 출력한다.
-pred = model.predict_proba(test_x)[:, 1]
-
-# 테스트 데이터의 예측 결과를 두개의 값(1,0)으로 변환
-pred_label = np.where(pred > 0.5, 1, 0)
-
-# 제출용 파일의 작성
-submission = pd.DataFrame({'PassengerId': test['PassengerId'], 'Survived': pred_label})
-submission.to_csv('submission_first.csv', index=False)
-# 스코어 ：0.77751（이 책에서 수치와 다를 가능성이 있습니다.）
 
 # -----------------------------------
 # 모델 검증
@@ -102,6 +83,7 @@ logloss = np.mean(scores_logloss)
 accuracy = np.mean(scores_accuracy)
 print(f'logloss: {logloss:.4f}, accuracy: {accuracy:.4f}')
 # logloss: 0.4270, accuracy: 0.8148（이 책의 수치와 다를 가능성이 있습니다.）
+
 
 # -----------------------------------
 # 모델 튜닝
@@ -158,71 +140,3 @@ best_param = params[best_idx]
 print(f'max_depth: {best_param[0]}, min_child_weight: {best_param[1]}')
 # max_depth=7, min_child_weight=2.0의 스코어가 가장 좋음.
 
-# -----------------------------------
-# 로지스틱 회귀용 특징(feature) 작성
-# -----------------------------------
-from sklearn.preprocessing import OneHotEncoder
-
-# 원래 데이터를 복사한다.
-train_x2 = train.drop(['Survived'], axis=1)
-test_x2 = test.copy()
-
-# 변수PassengerId을 제외한다.
-train_x2 = train_x2.drop(['PassengerId'], axis=1)
-test_x2 = test_x2.drop(['PassengerId'], axis=1)
-
-# 변수Name, Ticket, Cabin을 제외한다.
-train_x2 = train_x2.drop(['Name', 'Ticket', 'Cabin'], axis=1)
-test_x2 = test_x2.drop(['Name', 'Ticket', 'Cabin'], axis=1)
-
-# one-hot encoding을 수행
-cat_cols = ['Sex', 'Embarked', 'Pclass']
-ohe = OneHotEncoder(categories='auto', sparse=False)
-ohe.fit(train_x2[cat_cols].fillna('NA'))
-
-# one-hot encoding의 더미 변수의 열명을 작성한다.
-ohe_columns = []
-for i, c in enumerate(cat_cols):
-    ohe_columns += [f'{c}_{v}' for v in ohe.categories_[i]]
-
-# one-hot encoding에 의한 변수를 수행
-ohe_train_x2 = pd.DataFrame(ohe.transform(train_x2[cat_cols].fillna('NA')), columns=ohe_columns)
-ohe_test_x2 = pd.DataFrame(ohe.transform(test_x2[cat_cols].fillna('NA')), columns=ohe_columns)
-
-# one-hot encoding의 수행이 끝난 변수를 제외한다.
-train_x2 = train_x2.drop(cat_cols, axis=1)
-test_x2 = test_x2.drop(cat_cols, axis=1)
-
-# one-hot encoding으로 변환된 변수를 결합한다.
-train_x2 = pd.concat([train_x2, ohe_train_x2], axis=1)
-test_x2 = pd.concat([test_x2, ohe_test_x2], axis=1)
-
-# 수치 변수의 결손 값을 학습 데이터의 평균으로 채우기
-num_cols = ['Age', 'SibSp', 'Parch', 'Fare']
-for col in num_cols:
-    train_x2[col].fillna(train_x2[col].mean(), inplace=True)
-    test_x2[col].fillna(train_x2[col].mean(), inplace=True)
-
-# 변수Fare을 로그(대수) 변환
-train_x2['Fare'] = np.log1p(train_x2['Fare'])
-test_x2['Fare'] = np.log1p(test_x2['Fare'])
-
-# -----------------------------------
-# 앙상블(ensemble)
-# -----------------------------------
-from sklearn.linear_model import LogisticRegression
-
-# xgboost 모델
-model_xgb = XGBClassifier(n_estimators=20, random_state=71)
-model_xgb.fit(train_x, train_y)
-pred_xgb = model_xgb.predict_proba(test_x)[:, 1]
-
-# 로지스틱 회귀 모델
-# xgboost 모델과는 다른 특성(feature)를 넣을 필요에 따라 train_x2, test_x2를 생성.
-model_lr = LogisticRegression(solver='lbfgs', max_iter=300)
-model_lr.fit(train_x2, train_y)
-pred_lr = model_lr.predict_proba(test_x2)[:, 1]
-
-# 예측 결과의 가중 평균을 취하다.
-pred = pred_xgb * 0.8 + pred_lr * 0.2
-pred_label = np.where(pred > 0.5, 1, 0)

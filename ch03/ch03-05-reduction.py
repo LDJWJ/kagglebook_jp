@@ -1,25 +1,24 @@
 # ---------------------------------
-# データ等の準備
+# 기본 준비(데이터 등 기타)
 # ----------------------------------
 import numpy as np
 import pandas as pd
 
-# train_xは学習データ、train_yは目的変数、test_xはテストデータ
-# pandasのDataFrame, Seriesで保持します。（numpyのarrayで保持することもあります）
+# train_x는 학습 데이터, train_y는 목적 변수, test_x는 테스트 데이터
+# pandas의 DataFrame, Series을 사용합니다. (numpy의 array을 사용하기도 합니다.）
 
 train = pd.read_csv('../input/sample-data/train_preprocessed_onehot.csv')
 train_x = train.drop(['target'], axis=1)
 train_y = train['target']
 test_x = pd.read_csv('../input/sample-data/test_preprocessed_onehot.csv')
 
-# 説明用に学習データとテストデータの元の状態を保存しておく
+# 설명용으로 학습 데이터와 테스트 데이터의 원래 상태를 보존해 두기
 train_x_saved = train_x.copy()
 test_x_saved = test_x.copy()
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-
-# 標準化を行った学習データとテストデータを返す関数
+# 표준화한 학습 데이터와 테스트 데이터를 반환하는 함수 
 def load_standarized_data():
     train_x, test_x = train_x_saved.copy(), test_x_saved.copy()
 
@@ -29,12 +28,11 @@ def load_standarized_data():
     test_x = scaler.transform(test_x)
     return pd.DataFrame(train_x), pd.DataFrame(test_x)
 
-
-# MinMaxスケーリングを行った学習データとテストデータを返す関数
+# MinMax 스케일링을 한 학습 데이터와 테스트 데이터를 반환하는 함수
 def load_minmax_scaled_data():
     train_x, test_x = train_x_saved.copy(), test_x_saved.copy()
 
-    # Min-Max Scalingを行う
+    # Min-Max Scaling을 수행
     scaler = MinMaxScaler()
     scaler.fit(pd.concat([train_x, test_x], axis=0))
     train_x = scaler.transform(train_x)
@@ -43,147 +41,156 @@ def load_minmax_scaled_data():
     return pd.DataFrame(train_x), pd.DataFrame(test_x)
 
 
+#%%
 # -----------------------------------
 # PCA
 # -----------------------------------
-# 標準化されたデータを用いる
+# 표준화된 데이터를 사용
 train_x, test_x = load_standarized_data()
 # -----------------------------------
 # PCA
 from sklearn.decomposition import PCA
+# 데이터는 표준화 등의 스케일을 갖추기 위한 사전 처리가 이루어져야 한다.
 
-# データは標準化などのスケールを揃える前処理が行われているものとする
-
-# 学習データに基づいてPCAによる変換を定義
+# 학습 데이터를 기반으로 PCA에 의한 변환을 정의
 pca = PCA(n_components=5)
 pca.fit(train_x)
 
-# 変換の適用
+# 변환 적용
 train_x = pca.transform(train_x)
 test_x = pca.transform(test_x)
 
+#%%
 # -----------------------------------
-# 標準化されたデータを用いる
+# 표준화된 데이터를 사용
 train_x, test_x = load_standarized_data()
 # -----------------------------------
 # TruncatedSVD
 from sklearn.decomposition import TruncatedSVD
 
-# データは標準化などのスケールを揃える前処理が行われているものとする
+# 데이터는 표준화 등의 스케일을 갖추기 위한 사전 처리가 이루어져야 한다. 
 
-# 学習データに基づいてSVDによる変換を定義
+# 학습 데이터를 기반으로 SVD를 통한 변환 정의
 svd = TruncatedSVD(n_components=5, random_state=71)
 svd.fit(train_x)
 
-# 変換の適用
+# 변환 적용
 train_x = svd.transform(train_x)
 test_x = svd.transform(test_x)
 
+#%%
 # -----------------------------------
 # NMF
 # -----------------------------------
+# 마이너스 값이 아닌 양수를 이용하므로, MinMax 스케일링을 한 데이터를 이용한다.
 # 非負の値とするため、MinMaxスケーリングを行ったデータを用いる
 train_x, test_x = load_minmax_scaled_data()
 # -----------------------------------
 from sklearn.decomposition import NMF
 
-# データは非負の値から構成されているとする
+# 데이터는 음수가 아닌 값으로 구성되어 있음.
 
-# 学習データに基づいてNMFによる変換を定義
+# 학습 데이터를 기반으로 NMF에 의한 변환 정의
 model = NMF(n_components=5, init='random', random_state=71)
 model.fit(train_x)
 
-# 変換の適用
+# 변환 적용
 train_x = model.transform(train_x)
 test_x = model.transform(test_x)
 
+#%%
 # -----------------------------------
 # LatentDirichletAllocation
 # -----------------------------------
-# MinMaxスケーリングを行ったデータを用いる
-# カウント行列ではないが、非負の値であれば計算は可能
+# MinMax스케일링을 수행한 데이터를 이용
+# 카운트 행렬은 아니지만, 양수 값이면 계산 가능
 train_x, test_x = load_minmax_scaled_data()
 # -----------------------------------
 from sklearn.decomposition import LatentDirichletAllocation
 
-# データは単語文書のカウント行列などとする
+# 데이터는 단어 문서의 카운트 행렬 등으로 한다.
 
-# 学習データに基づいてLDAによる変換を定義
+# 학습 데이터를 기반으로 LDA에 의한 변환을 정의
 model = LatentDirichletAllocation(n_components=5, random_state=71)
 model.fit(train_x)
 
-# 変換の適用
+# 변환 적용
 train_x = model.transform(train_x)
 test_x = model.transform(test_x)
 
+#%%
 # -----------------------------------
 # LinearDiscriminantAnalysis
 # -----------------------------------
-# 標準化されたデータを用いる
+# 표준화된 데이터를 사용
 train_x, test_x = load_standarized_data()
 # -----------------------------------
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
-# データは標準化などのスケールを揃える前処理が行われているものとする
+# 데이터는 표준화 등의 스케일을 갖추기 위한 사전처리가 이루어져야 한다.
 
-# 学習データに基づいてLDAによる変換を定義
+# 학습 데이터를 기반으로 LDA에 의한 변환을 정의
 lda = LDA(n_components=1)
 lda.fit(train_x, train_y)
 
-# 変換の適用
+# 변환 적용
 train_x = lda.transform(train_x)
 test_x = lda.transform(test_x)
 
+#%%
 # -----------------------------------
 # t-sne
 # -----------------------------------
-# 標準化されたデータを用いる
+# 표준화된 데이터를 사용
 train_x, test_x = load_standarized_data()
 # -----------------------------------
 import bhtsne
 
-# データは標準化などのスケールを揃える前処理が行われているものとする
+# 데이터는 표준화 등의 스케일을 갖추기 위한 사전처리가 이루어져야 한다. 
 
-# t-sneによる変換
+# t-sne에 의한 변환
 data = pd.concat([train_x, test_x])
 embedded = bhtsne.tsne(data.astype(np.float64), dimensions=2, rand_seed=71)
 
+#%%
 # -----------------------------------
 # UMAP
 # -----------------------------------
-# 標準化されたデータを用いる
+# 표준화된 데이터를 사용
 train_x, test_x = load_standarized_data()
 # -----------------------------------
 import umap
 
-# データは標準化などのスケールを揃える前処理が行われているものとする
+# 데이터는 표준화 등의 스케일을 갖추기 위한 사전처리가 이루어져야 한다. 
 
-# 学習データに基づいてUMAPによる変換を定義
+
+# 학습 데이터를 기반으로 UMAP에 의한 변환을 정의
 um = umap.UMAP()
 um.fit(train_x)
 
-# 変換の適用
+# 변환 적용
 train_x = um.transform(train_x)
 test_x = um.transform(test_x)
 
+#%%
 # -----------------------------------
-# クラスタリング
+# 클러스터링 
 # -----------------------------------
-# 標準化されたデータを用いる
+# 표준화된 데이터를 사용
 train_x, test_x = load_standarized_data()
 # -----------------------------------
 from sklearn.cluster import MiniBatchKMeans
 
-# データは標準化などのスケールを揃える前処理が行われているものとする
+# 데이터는 표준화 등의 스케일을 갖추는 사전 처리가 이루어져야 한다. 
 
-# 学習データに基づいてMini-Batch K-Meansによる変換を定義
+# 학습 데이터를 기반으로 Mini-Batch K-Means를 통한 변환 정의
 kmeans = MiniBatchKMeans(n_clusters=10, random_state=71)
 kmeans.fit(train_x)
 
-# 属するクラスタを出力する
+# 소속된 클러스터를 출력
 train_clusters = kmeans.predict(train_x)
 test_clusters = kmeans.predict(test_x)
 
-# 各クラスタの中心までの距離を出力する
+# 각 클러스터의 중심까지의 거리를 출력
 train_distances = kmeans.transform(train_x)
 test_distances = kmeans.transform(test_x)
