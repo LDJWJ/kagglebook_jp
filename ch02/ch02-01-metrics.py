@@ -50,11 +50,12 @@ print(confusion_matrix2)
 
 #%%
 # -----------------------------------
-# accuracy
+# 정확도(accuracy)
+# -----------------------------------
 
 from sklearn.metrics import accuracy_score
 
-# 0, 1で表される二値分類の真の値と予測値
+# 0, 1로 표현되는 이진 분류의 실제값과 예측값
 y_true = [1, 0, 1, 1, 0, 1, 1, 0]
 y_pred = [0, 0, 1, 1, 0, 0, 1, 1]
 accuracy = accuracy_score(y_true, y_pred)
@@ -67,7 +68,7 @@ print(accuracy)
 
 from sklearn.metrics import log_loss
 
-# 0, 1で表される二値分類の真の値と予測確率
+# 0, 1로 나타나는 이진 분류의 실제 값과 예측 확률
 y_true = [1, 0, 1, 1, 0, 1]
 y_prob = [0.1, 0.2, 0.8, 0.8, 0.1, 0.3]
 

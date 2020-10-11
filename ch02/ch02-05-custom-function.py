@@ -3,12 +3,12 @@ import pandas as pd
 
 
 # -----------------------------------
-# 커스텀 목적 함수에서의 평가지표 근사에 의한 MAE 최적화
+# 커스텀 목적 함수의 평가지표 근사에 의한 MAE 최적화
 # -----------------------------------
 
 # Fair 함수 
 def fair(preds, dtrain):
-    x = preds - dtrain.get_labels()  # 残差を取得
+    x = preds - dtrain.get_labels()  # 잔차 획득
     c = 1.0  # Fair함수 파라미터
     den = abs(x) + c  # 기울기 식의 분모 계산
     grad = c * x / den  # 기울기

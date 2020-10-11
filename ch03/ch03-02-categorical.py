@@ -75,7 +75,7 @@ train_x, test_x = load_data()
 # -----------------------------------
 from sklearn.preprocessing import LabelEncoder
 
-# 범주형 변수를 반복하여 라벨 인코딩(label encoding)
+# 범주형 변수를 반복하여 라벨 인코딩(label encoding) 수행
 for c in cat_cols:
     # 학습 데이터에 근거하여 정의
     le = LabelEncoder()

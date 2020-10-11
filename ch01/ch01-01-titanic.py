@@ -67,8 +67,7 @@ submission.to_csv('submission_first.csv', index=False)
 from sklearn.metrics import log_loss, accuracy_score
 from sklearn.model_selection import KFold
 
-
-# 각 fold의 평가 점수(스코어)를 위한 빈 리스트 생성
+# 각 fold의 평가 점수(스코어)를 위한 빈 리스트 선언
 scores_accuracy = []
 scores_logloss = []
 
@@ -103,6 +102,7 @@ accuracy = np.mean(scores_accuracy)
 print(f'logloss: {logloss:.4f}, accuracy: {accuracy:.4f}')
 # logloss: 0.4270, accuracy: 0.8148（이 책의 수치와 다를 가능성이 있습니다.）
 
+#%%
 # -----------------------------------
 # 모델 튜닝
 # -----------------------------------
@@ -207,6 +207,7 @@ for col in num_cols:
 train_x2['Fare'] = np.log1p(train_x2['Fare'])
 test_x2['Fare'] = np.log1p(test_x2['Fare'])
 
+#%%
 # -----------------------------------
 # 앙상블(ensemble)
 # -----------------------------------

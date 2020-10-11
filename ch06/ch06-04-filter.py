@@ -14,7 +14,7 @@ train_y = train['target']
 test_x = pd.read_csv('../input/sample-data/test_preprocessed_onehot.csv')
 
 # ---------------------------------
-# argsort에 によるインデックスのソート
+# argsort에 의한 인덱스의 정렬
 # ---------------------------------
 # argsort을 사용하면 배열 값이 작은 순서/큰 순서로 인덱스를 정렬할 수 가능합니다.
 ary = np.array([10, 20, 30, 0])

@@ -79,7 +79,7 @@ print(score)
 
 from sklearn.model_selection import KFold
 
-# KFold 클래스를 이용하여 hold-out법으로 분할한다.
+# KFold 클래스를 이용하여 hold-out방법으로 분할한다.
 kf = KFold(n_splits=4, shuffle=True, random_state=71)
 tr_idx, va_idx = list(kf.split(train_x))[0]
 tr_x, va_x = train_x.iloc[tr_idx], train_x.iloc[va_idx]
