@@ -1,18 +1,19 @@
+#%%
 # ---------------------------------
-# データ等の準備
+# 데이터 등 준비
 # ----------------------------------
 import numpy as np
 import pandas as pd
 
-# train_xは学習データ、train_yは目的変数、test_xはテストデータ
-# pandasのDataFrame, Seriesで保持します。（numpyのarrayで保持することもあります）
+# train_x는 학습 데이터, train_y는 목적 변수 test_x는 테스트 데이터
+# pandas의 DataFrame, Series로 유지합니다. (numpy의 array로 유지합니다.）
 
 train = pd.read_csv('../input/sample-data/train_preprocessed.csv')
 train_x = train.drop(['target'], axis=1)
 train_y = train['target']
 test_x = pd.read_csv('../input/sample-data/test_preprocessed.csv')
 
-# 学習データを学習データとバリデーションデータに分ける
+# 학습 데이터를 학습 데이터와 검증(평가)데이터로 나눈다.
 from sklearn.model_selection import KFold
 
 kf = KFold(n_splits=4, shuffle=True, random_state=71)
@@ -20,7 +21,7 @@ tr_idx, va_idx = list(kf.split(train_x))[0]
 tr_x, va_x = train_x.iloc[tr_idx], train_x.iloc[va_idx]
 tr_y, va_y = train_y.iloc[tr_idx], train_y.iloc[va_idx]
 
-# 特徴量のリストに対して精度を評価するevaluate関数の定義
+# 특징(feature)의 목록에 대하여 정밀도를 평가하는 evaluate 함수의 정의
 import xgboost as xgb
 from sklearn.metrics import log_loss
 
@@ -40,7 +41,7 @@ def evaluate(features):
 
     return score
 
-
+#%%
 # ---------------------------------
 # Greedy Forward Selection
 # ----------------------------------
@@ -53,18 +54,18 @@ print('start greedy forward selection')
 while True:
 
     if len(selected) == len(train_x.columns):
-        # すべての特徴が選ばれて終了
+        # 모든 특징(feature)이 선정되어 종료
         break
 
     scores = []
     for feature in train_x.columns:
         if feature not in selected:
-            # 特徴量のリストに対して精度を評価するevaluate関数があるものとする
+            # 특징(feature)의 리스트에 대해서 정도를 평가하는 evaluate 함수가 있는 것으로 한다.
             fs = list(selected) + [feature]
             score = evaluate(fs)
             scores.append((feature, score))
 
-    # スコアは低い方が良いとする
+    # 스코어는 낮은 쪽이 좋다고 가정
     b_feature, b_score = sorted(scores, key=lambda tpl: tpl[1])[0]
     if b_score < best_score:
         selected.add(b_feature)
@@ -72,13 +73,17 @@ while True:
         print(f'selected:{b_feature}')
         print(f'score:{b_score}')
     else:
-        # どの特徴を追加してもスコアが上がらないので終了
+        # 어떤 특징(feature)을 추가해도 스코어가 오르지 않으므로 종료
         break
 
 print(f'selected features: {selected}')
+# selected features: 
+# {'sex', 'medical_keyword_2', 'age', 'weight', 'height', 'product', 
+# 'medical_info_a2', 'medical_keyword_4', 'medical_info_a1', 'medical_keyword_3', 'medical_keyword_5'}
 
+#%%
 # ---------------------------------
-# Greedy Forward Selectionを単純化した手法
+# Greedy Forward Selection의 단순화 기법
 # ----------------------------------
 
 best_score = 9999.0
@@ -87,11 +92,11 @@ selected = set([])
 
 print('start simple selection')
 for feature in candidates:
-    # 特徴量のリストに対して精度を評価するevaluate関数があるものとする
+    # 특징(feature)의 리스트에 대해서 정밀도를 평가하는 evaluate함수로 수행
     fs = list(selected) + [feature]
     score = evaluate(fs)
 
-    # スコアは低い方が良いとする
+    # 스코어는 낮은 쪽이 좋다고 가정한다.
     if score < best_score:
         selected.add(feature)
         best_score = score
@@ -99,3 +104,6 @@ for feature in candidates:
         print(f'score:{score}')
 
 print(f'selected features: {selected}')
+# selected features: 
+# {'sex', 'medical_keyword_2', 'medical_info_b1', 'age', 'medical_keyword_5', 
+# 'weight', 'height', 'medical_keyword_8', 'product', 'medical_info_c1', 'medical_info_a2', 'medical_keyword_1', 'medical_keyword_3', 'medical_info_a1', 'yearmonth', 'medical_keyword_6', 'medical_keyword_4'}

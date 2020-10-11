@@ -2,7 +2,7 @@
 import os
 print( os.getcwd() )
 
-
+#%%
 # ---------------------------------
 # 데이터 등 준비
 # ----------------------------------
@@ -40,7 +40,7 @@ class Model:
         pred = self.model.predict(data)
         return pred
 
-
+#%%
 # -----------------------------------
 # 모델의 학습과 예측
 # -----------------------------------
@@ -59,6 +59,7 @@ model.fit(train_x, train_y)
 # 테스트 데이터에 대해 예측결과를 출력합니다.
 pred = model.predict(test_x)
 
+#%%
 # -----------------------------------
 # 평가 및 검증
 # -----------------------------------
@@ -77,6 +78,7 @@ tr_y, va_y = train_y.iloc[tr_idx], train_y.iloc[va_idx]
 # 모델을 정의합니다.
 model = Model(params)
 
+#%%
 # 학습 데이터에 대해 모델을 학습 시킵니다.
 # 모델에 따라 검증데이터를 함께 전달하여 점수를 모니터링이 가능합니다.
 model.fit(tr_x, tr_y)
@@ -85,7 +87,9 @@ model.fit(tr_x, tr_y)
 va_pred = model.predict(va_x)
 score = log_loss(va_y, va_pred)
 print(f'logloss: {score:.4f}')
+# logloss : 0.3009
 
+#%%
 # -----------------------------------
 # 교차 검증(CrossValidation)
 # -----------------------------------
@@ -107,3 +111,4 @@ for tr_idx, va_idx in kf.split(train_x):
 
 # 교차 검증의 평균 스코어를 출력합니다.
 print(f'logloss: {np.mean(scores):.4f}')
+# logloss : 0.2967

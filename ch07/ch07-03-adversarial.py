@@ -1,49 +1,50 @@
 # ---------------------------------
-# データ等の準備
+# 데이터 등 준비
 # ----------------------------------
 import numpy as np
 import pandas as pd
 
-# データの作成（ランダムなデータとしています）
+# 데이터 작성(임의의 데이터로 합니다.)
 rand = np.random.RandomState(71)
 train_x = pd.DataFrame(rand.uniform(0.0, 1.0, (10000, 2)), columns=['model1', 'model2'])
 adv_train = pd.Series(rand.uniform(0.0, 1.0, 10000))
 w = np.array([0.3, 0.7]).reshape(1, -1)
 train_y = pd.Series((train_x.values * w).sum(axis=1) > 0.5)
 
+#%%
 # ---------------------------------
 # adversarial stochastic blending
 # ----------------------------------
-# モデルの予測値を加重平均する重みの値をadversarial validationで求める
-# train_x: 各モデルによる確率の予測値（実際には順位に変換したものを使用）
-# train_y: 目的変数
-# adv_train: 学習データのテストデータらしさを確率で表した値
+# 모델의 예측치를 가중 평균하는 가중치 값을 adversarial validation에서 구함.
+# train_x: 각 모델에 의한 확률 예측값（실제로는 순위로 변환한 것을 사용）
+# train_y: 목적변수
+# adv_train: 학습 데이터의 테스트 데이터 유사함을 확률로 나타낸 값
 
 from scipy.optimize import minimize
 from sklearn.metrics import roc_auc_score
 
-n_sampling = 50  # サンプリングの回数
-frac_sampling = 0.5  # サンプリングで学習データから取り出す割合
+n_sampling = 50  # 샘플링 횟수
+frac_sampling = 0.5  # 샘플링에서 학습 데이터를 추출하는 비율
 
 
 def score(x, data_x, data_y):
-    # 評価指標はAUCとする
+    # 평가지표는 AUC로 한다.
     y_prob = data_x['model1'] * x + data_x['model2'] * (1 - x)
     return -roc_auc_score(data_y, y_prob)
 
 
-# サンプリングにより加重平均の重みの値を求めることを繰り返す
+# 샘플링으로 가중 평균 가중치 값을 구하는 것을 반복한다.
 results = []
 for i in range(n_sampling):
-    # サンプリングを行う
+    # 샘플링을 수행
     seed = i
     idx = pd.Series(np.arange(len(train_y))).sample(frac=frac_sampling, replace=False,
                                                     random_state=seed, weights=adv_train)
     x_sample = train_x.iloc[idx]
     y_sample = train_y.iloc[idx]
 
-    # サンプリングしたデータに対して、加重平均の重みの値を最適化により求める
-    # 制約式を持たせるようにしたため、アルゴリズムはCOBYLAを選択
+    # 샘플링한 데이터에 대하여 가중 평균 가중치 값을 최적화로 구하기
+    # 제약식을 갖게 하기 위해 알고리즘은 COBYLA를 선택
     init_x = np.array(0.5)
     constraints = (
         {'type': 'ineq', 'fun': lambda x: x},
@@ -55,6 +56,6 @@ for i in range(n_sampling):
                       method='COBYLA')
     results.append((result.x, 1.0 - result.x))
 
-# model1, model2の加重平均の重み
+# model1, model2의 가중평균 무게
 results = np.array(results)
 w_model1, w_model2 = results.mean(axis=0)

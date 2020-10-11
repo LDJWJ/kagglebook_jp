@@ -1,18 +1,19 @@
+#%%
 # ---------------------------------
-# データ等の準備
+# 데이터 등 준비
 # ----------------------------------
 import numpy as np
 import pandas as pd
 
-# train_xは学習データ、train_yは目的変数、test_xはテストデータ
-# pandasのDataFrame, Seriesで保持します。（numpyのarrayで保持することもあります）
+# train_x는 학습 데이터, train_y는 목적 변수 test_x는 테스트 데이터
+# pandas의 DataFrame, Series로 유지합니다. (numpy의 array로 유지합니다.）
 
 train = pd.read_csv('../input/sample-data/train_preprocessed.csv')
 train_x = train.drop(['target'], axis=1)
 train_y = train['target']
 test_x = pd.read_csv('../input/sample-data/test_preprocessed.csv')
 
-# 学習データを学習データとバリデーションデータに分ける
+# 학습 데이터를 학습 데이터와 검증(평가)데이터로 나눈다.
 from sklearn.model_selection import KFold
 
 kf = KFold(n_splits=4, shuffle=True, random_state=71)
@@ -20,7 +21,8 @@ tr_idx, va_idx = list(kf.split(train_x))[0]
 tr_x, va_x = train_x.iloc[tr_idx], train_x.iloc[va_idx]
 tr_y, va_y = train_y.iloc[tr_idx], train_y.iloc[va_idx]
 
-# xgboostによる学習・予測を行うクラス
+#%%
+# xgboost를 활용한 학습・예측을 실행하기 위한 클래스
 import xgboost as xgb
 
 
@@ -47,14 +49,14 @@ class Model:
         pred = self.model.predict(data)
         return pred
 
-
+#%%
 # -----------------------------------
-# 探索するパラメータの空間の指定
+# 탐색하는 파라미터의 공간 지정
 # -----------------------------------
-# hp.choiceでは、複数の選択肢から選ぶ
-# hp.uniformでは、下限・上限を指定した一様分布から抽出する。引数は下限・上限
-# hp.quniformでは、下限・上限を指定した一様分布のうち一定の間隔ごとの点から抽出する。引数は下限・上限・間隔
-# hp.loguniformでは、下限・上限を指定した対数が一様分布に従う分布から抽出する。引数は下限・上限の対数をとった値
+# hp.choice에서는 복수의 선택사항에서 고르기
+# hp.uniform에서는 하한・상한을 지정한 동일 분포로부터 추출한다. 인수는 하한・상한
+# hp.quniform에서는 하한・상한을 지정한 동일 분포 중 일정한 간격마다의 점으로부터 추출한다. 인수는 하한・상한・간격
+# hp.loguniform에서는 하한・상한을 지정한 대수가 동일 분포를 따르는 분포로부터 추출한다. 인수는 하한・상한의 대수를 취한 값
 
 from hyperopt import hp
 
@@ -66,48 +68,48 @@ space = {
 }
 
 # -----------------------------------
-# hyperoptを使ったパラメータ探索
+# hyperopt을 사용한 파라미터 탐색
 # -----------------------------------
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 from sklearn.metrics import log_loss
 
 
 def score(params):
-    # パラメータを与えたときに最小化する評価指標を指定する
-    # 具体的には、モデルにパラメータを指定して学習・予測させた場合のスコアを返すようにする
+    # 파라미터를 부여했을 때 최소하하는 평가 지표를 지정한다.
+    # 구체적으로는 모델에 파라미터를 지정하여 학습・예측하게 한 경우의 스코어를 반환하도록 한다.
 
-    # max_depthの型を整数型に修正する
+    # max_depth의 형태를 정수형으로 수정한다.
     params['max_depth'] = int(params['max_depth'])
 
-    # Modelクラスを定義しているものとする
-    # Modelクラスは、fitで学習し、predictで予測値の確率を出力する
+    # Model클래스를 정의하고 있는 것으로 한다.
+    # Model클래스는 fit로 학습하고, predict로 예측값 확률을 출력한다.
     model = Model(params)
     model.fit(tr_x, tr_y, va_x, va_y)
     va_pred = model.predict(va_x)
     score = log_loss(va_y, va_pred)
     print(f'params: {params}, logloss: {score:.4f}')
 
-    # 情報を記録しておく
+    # 정보를 기록해 두다.
     history.append((params, score))
 
     return {'loss': score, 'status': STATUS_OK}
 
 
-# 探索するパラメータの空間を指定する
+# 팀색할 파라미터의 공간을 지정하다.
 space = {
     'min_child_weight': hp.quniform('min_child_weight', 1, 5, 1),
     'max_depth': hp.quniform('max_depth', 3, 9, 1),
     'gamma': hp.quniform('gamma', 0, 0.4, 0.1),
 }
 
-# hyperoptによるパラメータ探索の実行
+# hyperopt에 의한 파라미터 탐색의 실행
 max_evals = 10
 trials = Trials()
 history = []
 fmin(score, space, algo=tpe.suggest, trials=trials, max_evals=max_evals)
 
-# 記録した情報からパラメータとスコアを出力する
-# （trialsからも情報が取得できるが、パラメータの取得がやや行いづらいため）
+# 기록한 정보에서 파라미터와 스코어를 출력하다.
+# （trials에서도 정보를 취득할 수 있지만 파라미터의 취득이 다소 어렵기 때문）
 history = sorted(history, key=lambda tpl: tpl[1])
 best = history[0]
 print(f'best params:{best[0]}, score:{best[1]:.4f}')

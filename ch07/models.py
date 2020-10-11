@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -6,14 +7,14 @@ from keras.layers import Dense, Dropout
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-# tensorflowの警告抑制
+# tensorflow의 경고 메시지 제한
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-
-# xgboostによるモデル
+#%%
+# xgboost에 의한 모델
 class Model1Xgb:
 
     def __init__(self):
@@ -34,7 +35,7 @@ class Model1Xgb:
         return pred
 
 
-# ニューラルネットによるモデル
+# 신경망에 의한 모델 
 class Model1NN:
 
     def __init__(self):
@@ -70,7 +71,7 @@ class Model1NN:
         return pred
 
 
-# 線形モデル
+# 선형 모델
 class Model2Linear:
 
     def __init__(self):
